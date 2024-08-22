@@ -184,7 +184,8 @@ def prepare_test_driver_namespace():
     with run.Parallel("prepare_driver") as parallel:
 
         parallel.delayed(prepare_user_pods.prepare_user_pods, user_count)
-        parallel.delayed(prepare_user_pods.cluster_scale_up, user_count)
+        # temporarily act as if there are more users when determining cluster size
+        parallel.delayed(prepare_user_pods.cluster_scale_up, user_count * 2)
 
 
 @entrypoint()
