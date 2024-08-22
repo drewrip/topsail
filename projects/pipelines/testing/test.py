@@ -185,7 +185,7 @@ def prepare_test_driver_namespace():
 
         parallel.delayed(prepare_user_pods.prepare_user_pods, user_count)
         # temporarily act as if there are more users when determining cluster size
-        parallel.delayed(prepare_user_pods.cluster_scale_up, user_count * 2)
+        parallel.delayed(prepare_user_pods.cluster_scale_up, user_count)
 
 
 @entrypoint()
@@ -201,7 +201,7 @@ def prepare_sutest_scale_up():
     extra = dict()
     if node_count is None:
         node_count = compute_node_requirement(sutest=True)
-        extra["scale"] = node_count
+        extra["scale"] = node_count * 2
 
     run.run_toolbox_from_config("cluster", "set_scale", prefix="sutest", extra=extra)
 

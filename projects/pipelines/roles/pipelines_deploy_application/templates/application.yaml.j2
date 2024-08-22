@@ -15,6 +15,13 @@ spec:
       pipelineDBName: mlpipeline
       pvcSize: 10Gi
       username: mlpipeline
+    resources:
+      requests:
+        cpu: 600m
+        memory: 1600Mi
+      limits:
+        cpu: "2"
+        memory: 2Gi
   mlpipelineUI:
     deploy: true
     image: quay.io/opendatahub/ds-pipelines-frontend:latest
