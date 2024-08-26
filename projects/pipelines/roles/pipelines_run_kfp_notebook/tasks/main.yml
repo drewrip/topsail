@@ -174,6 +174,10 @@
        --dry-run=client -oyaml
        | tee "{{ artifact_extra_logs_dir }}/src/clusterrolebinding.yaml"
        | oc apply -f-
+  register: grant_priv_sa_cmd
+  retries: 15
+  delay: 2
+  until: grant_priv_sa_cmd.rc == 0
 
 # ---
 
