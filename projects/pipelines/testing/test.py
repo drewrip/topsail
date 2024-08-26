@@ -91,12 +91,6 @@ def uninstall_ocp_pipelines():
     run.run(f"oc delete sub/{PIPELINES_OPERATOR_MANIFEST_NAME} -n {PIPELINES_OPERATOR_NAMESPACE} --ignore-not-found")
     run.run(f"oc delete csv -n {PIPELINES_OPERATOR_NAMESPACE} -loperators.coreos.com/{PIPELINES_OPERATOR_MANIFEST_NAME}.{PIPELINES_OPERATOR_NAMESPACE}")
 
-
-def create_dsp_application():
-    dspa_name = config.ci_artifacts.get_config("rhods.pipelines.application.name")
-    if run.run(f'oc get dspa/"{dspa_name}" 2>/dev/null', check=False).returncode != 0:
-        run.run_toolbox_from_config("pipelines", "deploy_application")
-
 @entrypoint()
 def prepare_rhods():
     """
@@ -157,21 +151,21 @@ def prepare_pipelines_namespace():
     namespace = config.ci_artifacts.get_config("rhods.pipelines.namespace")
     if run.run(f'oc get project "{namespace}" 2>/dev/null', check=False).returncode != 0:
         run.run(f'oc new-project "{namespace}" --skip-config-write >/dev/null')
+        run.run(f"oc label namespace/{namespace} opendatahub.io/dashboard=true --overwrite")
+
+        label_key = config.ci_artifacts.get_config("rhods.pipelines.namespace_label.key")
+        label_value = config.ci_artifacts.get_config("rhods.pipelines.namespace_label.value")
+        run.run(f"oc label namespace/{namespace} '{label_key}={label_value}' --overwrite")
+
+        dedicated = "{}" if config.ci_artifacts.get_config("clusters.sutest.compute.dedicated") \
+            else '{value: ""}' # delete the toleration/node-selector annotations, if it exists
+
+        run.run_toolbox_from_config("cluster", "set_project_annotation", prefix="sutest", suffix="pipelines_node_selector", extra=dedicated)
+        run.run_toolbox_from_config("cluster", "set_project_annotation", prefix="sutest", suffix="pipelines_toleration" , extra=dedicated)
+        run.run_toolbox_from_config("pipelines", "deploy_application")
     else:
         logging.warning(f"Project {namespace} already exists.")
         (env.ARTIFACT_DIR / "PROJECT_ALREADY_EXISTS").touch()
-
-    run.run(f"oc label namespace/{namespace} opendatahub.io/dashboard=true --overwrite")
-
-    label_key = config.ci_artifacts.get_config("rhods.pipelines.namespace_label.key")
-    label_value = config.ci_artifacts.get_config("rhods.pipelines.namespace_label.value")
-    run.run(f"oc label namespace/{namespace} '{label_key}={label_value}' --overwrite")
-
-    dedicated = "{}" if config.ci_artifacts.get_config("clusters.sutest.compute.dedicated") \
-        else '{value: ""}' # delete the toleration/node-selector annotations, if it exists
-
-    run.run_toolbox_from_config("cluster", "set_project_annotation", prefix="sutest", suffix="pipelines_node_selector", extra=dedicated)
-    run.run_toolbox_from_config("cluster", "set_project_annotation", prefix="sutest", suffix="pipelines_toleration" , extra=dedicated)
 
 
 @entrypoint()
@@ -259,7 +253,6 @@ def pipelines_run_one():
     try:
 
         prepare_pipelines_namespace()
-        create_dsp_application()
 
         if not config.ci_artifacts.get_config("tests.pipelines.deploy_pipeline"):
             return
