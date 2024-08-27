@@ -208,7 +208,7 @@
 
   - name: Try to login using the SA token
     shell:
-      oc login --token=$(oc get secret {{ secret_token_name }} -o go-template --template="{{.data.token|base64decode}}")
+      oc login --token=$(oc get secret "{{ secret_token_name }}" -ojson | jq -r '.data.token' | base64 --decode)
 
   - name: Try to get the DSP address with the SA token
     command:
