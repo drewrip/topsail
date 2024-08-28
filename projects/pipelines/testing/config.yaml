@@ -194,7 +194,7 @@ clusters:
       version: 4.12.12
       region: us-west-2
       control_plane:
-        type: m6a.xlarge
+        type: m6a.4xlarge
       workers:
         type: m6a.2xlarge
         count: 2
