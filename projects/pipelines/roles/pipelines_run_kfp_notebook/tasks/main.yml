@@ -213,7 +213,7 @@
 
   - name: Try to login using the SA token
     shell:
-      oc login "{{ api_server_url_cmd }}" --token=$(oc get secret "{{ secret_token_name }}" -n "{{ notebook_namespace }}" -ojson | jq -r '.data.token' | base64 --decode)
+      oc login "{{ api_server_url_cmd.stdout }}" --token=$(oc get secret "{{ secret_token_name }}" -n "{{ notebook_namespace }}" -ojson | jq -r '.data.token' | base64 --decode)
 
   - name: Try to get the DSP address with the SA token
     command:
