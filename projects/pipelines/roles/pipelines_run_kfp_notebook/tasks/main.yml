@@ -223,6 +223,18 @@
     until: sa_dsp_route_cmd.rc == 0
     register: sa_dsp_route_cmd
 
+  - name: Switch back to the admin user
+    command:
+      oc config use-context admin
+
+  - name: Show apiservices
+    shell:
+      oc get apiservices > "{{ artifact_extra_logs_dir }}/apiservices"
+
+  - name: Show co
+    shell:
+      oc get co > "{{ artifact_extra_logs_dir }}/co"
+
   - name: Create the test notebook
     command:
       oc create
